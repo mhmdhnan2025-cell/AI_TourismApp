@@ -3,135 +3,152 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   StatusBar,
+  ActivityIndicator,
+  TouchableOpacity
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import Feather from 'react-native-vector-icons/Feather';
 import { RFValue } from 'react-native-responsive-fontsize';
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Custombutton from '../CustomComponents/Custombutton';
-
+import GradientComponent from '../CustomComponents/Background'
+// Validation
 const LoginSchema = Yup.object().shape({
-  email: Yup.string().email('Invalid email').required('Email is required'),
-  password: Yup.string()
-    .min(6, 'Min 6 characters')
-    .required('Password is required'),
+  login: Yup.string().required('Email or Username is required'),
+  password: Yup.string().min(6, 'Min 6 characters').required('Password is required'),
 });
 
 const Login = ({ navigation }) => {
-  const [showPassword, setShowPassword] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+
+  const BACKEND_URL = 'http://192.168.100.178:5001/login';
 
   return (
-    
-       <View style={styles.container}> 
-       <StatusBar barStyle={'dark-content'}/>
+    <GradientComponent>
+      <StatusBar barStyle={'light-content'} />
       <Text style={styles.title}>Login</Text>
 
       <Formik
-        initialValues={{ email: '', password: '' }}
+        initialValues={{ login: '', password: '' }}
         validationSchema={LoginSchema}
-        onSubmit={(values,{resetForm})=>{
-           resetForm();
-           navigation.replace('BottomTabs');
+
+        onSubmit={async (values, { resetForm }) => {
+
+          setLoading(true);
+
+          try {
+
+            const response = await fetch(BACKEND_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                login: values.login,
+                password: values.password,
+              }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+
+              const userData = data.user;
+
+              // check admin
+              if (userData.is_admin) {
+                navigation.replace('AdminNavigation');
+              } else {
+                navigation.replace('BottomTabs', { user: userData });
+              }
+
+              resetForm();
+
+            } else {
+
+              alert(data.msg || 'Login failed');
+            }
+
+          } catch (err) {
+
+            alert('Server error');
+
+          } finally {
+
+            setLoading(false);
+
+          }
+
         }}
+
       >
-        {({
-          handleChange,
-          handleBlur,
-          handleSubmit,
-          values,
-          errors,
-          touched,
-        }) => (
+
+        {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+
           <>
+
             <TextInput
-              placeholder="Email"
+              placeholder="Email or Username"
               placeholderTextColor="#999"
               style={styles.input}
-              onChangeText={handleChange('email')}
-              onBlur={handleBlur('email')}
-              value={values.email}
+              onChangeText={handleChange('login')}
+              onBlur={handleBlur('login')}
+              value={values.login}
             />
-            {touched.email && errors.email && (
-              <Text style={styles.error}>{errors.email}</Text>
+
+            {touched.login && errors.login && (
+              <Text style={styles.error}>{errors.login}</Text>
             )}
 
             <TextInput
               placeholder="Password"
               placeholderTextColor="#999"
-              style={[styles.input]}
-              secureTextEntry={!showPassword}
+              style={styles.input}
+              secureTextEntry={true}
               onChangeText={handleChange('password')}
               onBlur={handleBlur('password')}
               value={values.password}
             />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Feather
-                name={showPassword ? 'eye-off' : 'eye'}
-                size={RFValue(20)}
-                color="#ccc"
-                style={{
-                  position: 'absolute',
-                  right: wp('8%'),
-                  bottom: hp('2%'),
-                }}
-              />
-            </TouchableOpacity>
 
             {touched.password && errors.password && (
               <Text style={styles.error}>{errors.password}</Text>
             )}
 
-            <TouchableOpacity style={styles.forgotBtn}>
-              <Text style={styles.forgotText}>Forgot Password?</Text>
-            </TouchableOpacity>
-            <View style={{justifyContent:'center',alignItems:'center'}}>
-            <Custombutton title="Login" 
-                onPress={handleSubmit}
-                style={{marginTop:hp('2%')}}
-            />
+            <Custombutton title={loading ? '' : 'Login'} onPress={handleSubmit} style={{ marginTop: 10, alignSelf: "center" }}>
+              {loading && <ActivityIndicator size="small" color="Green" />}
+            </Custombutton>
 
-
-               <View style={{flexDirection:'row',marginTop:hp('2%')}}>
-              <Text style={styles.switchText}>
-                Don’t have an account?</Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-                <Text style={{ color: '#E65100',marginLeft:wp('1.5%') ,fontSize:RFValue(14),fontWeight:'semibold'}}>Sign up</Text>
-             
-            </TouchableOpacity>
-            </View>
+            <View style={{ flexDirection: 'row', marginTop: hp('2%'), justifyContent: "center" }}>
+              <Text style={styles.switchText}>Already have an account?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                <Text style={{ color: '#fff', marginLeft: wp('1.5%'), fontSize: RFValue(13), fontWeight: '600' }}>SignUp</Text>
+              </TouchableOpacity>
             </View>
           </>
+
         )}
+
       </Formik>
-    
-    </View>
-      
+    </GradientComponent >
   );
-  
 };
+
 export default Login;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center' ,backgroundColor:'#FFFFFF'},
+  container: { flex: 1, justifyContent: 'center', backgroundColor: '#FFFFFF' },
 
   title: {
     fontSize: RFValue(26),
-    color: '#E65100',
+    color: '#fff',
     fontWeight: '700',
     marginBottom: hp('2%'),
-    textAlign: 'center',
+    textAlign: 'center'
   },
+
   input: {
-    // backgroundColor: 'rgba(255,255,255,0.15)',
-    backgroundColor:'#F3F3F4',
+    backgroundColor: '#F3F3F4',
     borderRadius: wp('3%'),
     padding: hp('2.2%'),
     color: '#000',
@@ -139,26 +156,13 @@ const styles = StyleSheet.create({
     marginHorizontal: wp('4%'),
   },
 
-  button: {
-    marginTop: hp('2.5%'),
-    backgroundColor: '#A78BFA',
-    paddingVertical: hp('1.8%'),
-    borderRadius: wp('3%'),
-  },
-  buttonText: {
+  error: {
     color: '#fff',
-    fontSize: RFValue(16),
-    textAlign: 'center',
-    fontWeight: 'bold',
+    fontSize: RFValue(11),
+    marginTop: hp('0.5%'),
+    marginLeft: wp('5%')
   },
-  forgotBtn: { marginTop: hp('1%'), marginRight: wp('6%') },
-  forgotText: { color: '#999', textAlign: 'right', fontSize: RFValue(12.5) ,fontWeight:'semibold'},
-  error: { color: '#F87171', fontSize: RFValue(11), marginTop: hp('0.5%'),marginLeft:wp('5%') },
-  switchText: {
-    color: '#999',
-    textAlign: 'center',
-    // marginTop: hp('2%'),
-    fontSize: RFValue(13),
-    fontWeight:'semibold',
-  },
+  switchText: { color: '#999', textAlign: 'center', fontSize: RFValue(13), fontWeight: '600' },
+
+
 });
