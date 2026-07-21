@@ -149,6 +149,8 @@ CORS(app)
 
 load_dotenv()
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 # ================= DATABASE =================
 conn = psycopg2.connect(
