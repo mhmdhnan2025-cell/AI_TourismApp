@@ -154,10 +154,11 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # ================= DATABASE =================
 conn = psycopg2.connect(
-    host=os.getenv("DB_HOST"),
-    database=os.getenv("DB_NAME"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD")
+    host=os.getenv("PGHOST"),
+    port=os.getenv("PGPORT"),
+    database=os.getenv("PGDATABASE"),
+    user=os.getenv("PGUSER"),
+    password=os.getenv("PGPASSWORD")
 )
 cur = conn.cursor(cursor_factory=RealDictCursor)
 # ================= CREATE TABLES =================
