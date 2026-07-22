@@ -140,7 +140,7 @@ import psycopg2
 from psycopg2 import errors
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
-import traceback
+
 
 # ================= APP =================
 
@@ -473,16 +473,18 @@ def login():
             return jsonify(
                 {"msg":"wrong"}
             ),401
-        
 
 
 
     except Exception as e:
-    traceback.print_exc()
 
-    return jsonify({
-        "msg": str(e)
-    }), 500
+
+        print(e)
+
+
+        return jsonify(
+            {"msg":"Server error"}
+        ),500
     
     # ================= TOURS =================
 
