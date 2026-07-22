@@ -397,8 +397,7 @@ def login():
 
 
     print("🔥 LOGIN REQUEST RECEIVED")
-
-
+    print("VERSION_2_REALDICT_ACTIVE")
     data = request.json
 
 
