@@ -473,6 +473,7 @@ def login():
             return jsonify(
                 {"msg":"wrong"}
             ),401
+        
 
 
 
@@ -481,7 +482,7 @@ def login():
 
     return jsonify({
         "msg": str(e)
-    }),500
+    }), 500
     
     # ================= TOURS =================
 
