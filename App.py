@@ -1500,62 +1500,29 @@ OPENROUTER_API_KEY = os.getenv("AR_Key")
 
 @app.route("/text-process", methods=["POST"])
 def text_process():
-
     data = request.get_json()
-
     prompt = data.get("prompt")
 
     try:
-
         response = requests.post(
-
             "https://openrouter.ai/api/v1/chat/completions",
-
             headers={
-
                 "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-
                 "Content-Type": "application/json"
-
             },
-
             json={
-
-                "model": "meta-llama/llama-3.2-11b-vision-instruct",
-
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-
+                "model": "openai/gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 150
-
             }
-
         )
 
         result = response.json()
-        
-        print("OPENROUTER RESPONSE:")
-        print(result)
-
-        # ✅ Extract text safely from choices array
-        try:
-            text = result["choices"][0]["message"]["content"]
-        except (KeyError, IndexError, TypeError) as e:
-            print(f"Error extracting text: {e}")
-            text = str(result)
-
+        text = result["choices"][0]["message"]["content"]
         return jsonify({"result": text})
 
     except Exception as e:
-
-        print(f"ERROR in text_process: {e}")
-
         return jsonify({"result": str(e)}), 500
-
 
 
 
