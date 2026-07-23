@@ -943,9 +943,9 @@ def process_image():
 
 
 
-        return jsonify(
-            {"result":text}
-        )
+        return jsonify({
+    "result": result["choices"][0]["message"]["content"]
+})
 
 
 
