@@ -1518,7 +1518,7 @@ def text_process():
         )
 
         result = response.json()
-        text = result["choices"][0]["message"]["content"]
+        text = result["choices"][0]["message"]["content"]                                
         return jsonify({"result": text})
 
     except Exception as e:
@@ -1590,7 +1590,7 @@ def process_image():
 
                             {
                                 "type": "text",
-                                "text": "Describe this image shortly"
+                                "text": "Detect Landmark just and short lines on history"
                             },
 
                             {
