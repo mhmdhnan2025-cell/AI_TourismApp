@@ -793,171 +793,105 @@ def text_process():
 @app.route("/process", methods=["POST"])
 def process_image():
 
-
     if "image" not in request.files:
-
-        return jsonify(
-            {"result":"No image uploaded"}
-        ),400
-
-
+        return jsonify({
+            "result": "No image uploaded"
+        }), 400
 
     try:
-
-
         file = request.files["image"]
 
-
-
-        # resize image
-
+        # Open image
         image = Image.open(
             io.BytesIO(file.read())
         )
 
-
+        # Convert RGB
         image = image.convert("RGB")
 
+        # Resize
+        image.thumbnail((512, 512))
 
-
-        MAX_SIZE = (512,512)
-
-
-        image.thumbnail(MAX_SIZE)
-
-
-
+        # Compress image
         buffer = io.BytesIO()
 
-
         image.save(
-
             buffer,
-
             format="JPEG",
-
             quality=70
-
         )
-
-
 
         img_bytes = buffer.getvalue()
 
-
-
-        # base64
-
+        # Convert to base64
         img_base64 = base64.b64encode(
             img_bytes
         ).decode("utf-8")
 
 
-
-
-
+        # Send to OpenRouter
         response = requests.post(
-
 
             "https://openrouter.ai/api/v1/chat/completions",
 
-
             headers={
-
-                "Authorization":
-                f"Bearer {OPENROUTER_API_KEY}",
-
-
-                "Content-Type":
-                "application/json"
-
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json"
             },
-
-
 
             json={
 
+                "model": "openai/gpt-4o-mini",
 
-                "model":
-                "openai/gpt-4o-mini",
-
-
-
-                "messages":[
-
+                "messages": [
                     {
+                        "role": "user",
 
-                    "role":"user",
+                        "content": [
 
+                            {
+                                "type": "text",
+                                "text": "Describe this image shortly"
+                            },
 
-                    "content":[
+                            {
+                                "type": "image_url",
 
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{img_base64}"
+                                }
+                            }
 
-                        {
-
-                        "type":"text",
-
-                        "text":
-                        "Describe this image shortly"
-
-                        },
-
-
-                        {
-
-                        "type":"image_url",
-
-
-                        "image_url":{
-
-                            "url":
-                            f"data:image/jpeg;base64,{img_base64}"
-
-                        }
-
-                        }
-
-
-                    ]
-
+                        ]
                     }
-
                 ],
 
-
-
-                "max_tokens":150
-
-
+                "max_tokens": 150
             }
-
         )
-
 
 
         result = response.json()
 
+        print("OPENROUTER RESPONSE:")
+        print(result)
 
 
         text = result["choices"][0]["message"]["content"]
 
 
-
         return jsonify({
-    "result": result["choices"][0]["message"]["content"]
-})
-
+            "result": text
+        })
 
 
     except Exception as e:
 
+        print("ERROR:", e)
 
-        return jsonify(
-            {"result":str(e)}
-        ),500
-
-
-
+        return jsonify({
+            "result": str(e)
+        }), 500
 
 
 # ================= RUN SERVER =================
